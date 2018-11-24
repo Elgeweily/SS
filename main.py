@@ -58,26 +58,32 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     # TODO: Implement function
     # 1x1 Convolution of layer7
     conv_1x1_layer7 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same',
-    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     # Upsample
     conv_1x1_layer7_upsampled = tf.layers.conv2d_transpose(conv_1x1_layer7, num_classes, 4, 2, padding='same',
-    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     # 1x1 Convolution of layer4
     conv_1x1_layer4 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same',
-    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     # Skip connection
     skip1 = tf.add(conv_1x1_layer7_upsampled, conv_1x1_layer4)   
     # Upsample
     skip1_upsampled = tf.layers.conv2d_transpose(skip1, num_classes, 4, 2, padding='same',
-    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     # 1x1 Convolution of layer3
     conv_1x1_layer3 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same',
-    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     # Skip connection
     skip2 = tf.add(skip1_upsampled, conv_1x1_layer3)
     # Upsample
     output = tf.layers.conv2d_transpose(skip2, num_classes, 16, 8, padding='same',
-    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+    kernel_initializer=tf.truncated_normal_initializer(stddev=0.01))
     return output
 tests.test_layers(layers)
 
@@ -101,8 +107,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     # Loss function
     cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=correct_label, logits=logits))
     reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-    reg_constant = 1e-3
-    loss = cross_entropy_loss + reg_constant * sum(reg_losses)
+    loss = cross_entropy_loss + sum(reg_losses)
     # Adam optimizer
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train_op = optimizer.minimize(loss)
